@@ -85,7 +85,7 @@ En devDependencies:     "tailwindcss": "^4.1.6",
 
 6º: En 'index.html': 
   
-   Dentro del <head>   <link href="/src/assets/main.css" rel="stylesheet">
+   Dentro del  ((head>   link href="/src/assets/main.css" rel="stylesheet">))
 
 
 
