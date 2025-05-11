@@ -13,8 +13,7 @@ const titleInput = ref<HTMLInputElement | null>(null)
 
 watch(() => props.isOpen, async (isOpen) => {
   if (isOpen) {
-    setTimeout(() => titleInput.value?.focus(), 0)
-       await nextTick()
+    await nextTick()
     activate()
     titleInput.value?.focus()
   } else {
