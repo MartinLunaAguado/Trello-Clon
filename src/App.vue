@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 
 import Draggable from 'vuedraggable'
 // import Parent from '@/components/ParentVue.vue'
 import ModalDialog from '@/components/ModalDialog.vue'
-import type { List } from './types.ts'
+import  { type Card, type List } from './types.ts'
 
 const lists = reactive<List[]>([
   {
@@ -31,12 +31,48 @@ const lists = reactive<List[]>([
 ])
 
 const isModalOpen = ref(false)
+const editingCard = ref<Card | null>(null)
+const editingListIndex = ref<number | null>(null)
+const modalMode = computed(() => editingCard.value === null ? 'add' : 'edit')
 
-const openModal = () => {
+
+const openModal = (listIndex: number, card?: Card) => {
+  editingListIndex.value = listIndex
+  editingCard.value = card === undefined ? null : card
   isModalOpen.value = true
 }
 
+
+const saveCard = (card: Card) => {
+  if (editingListIndex.value === null) {
+    return
+  }
+  if (modalMode.value === 'add') {
+    // Adding
+    const newId = Math.max(
+      ...lists.flatMap(list => list.cards.map(c => c.id))
+    )
+    lists[editingListIndex.value].cards.push(
+      {...card, id: newId}
+    )
+  } else {
+    // Modify
+    const cardIndex = lists[editingListIndex.value]
+      .cards.findIndex(
+        (cardOnList) => cardOnList.id === card.id
+      )
+    if (cardIndex !== -1) {
+      lists[editingListIndex.value].cards[cardIndex] = card
+    }
+  }
+  closeModal()
+}
+
+
+
 const closeModal = () => {
+  editingListIndex.value = null
+  editingCard.value = null
   isModalOpen.value = false
 }
 </script>
@@ -57,33 +93,27 @@ const closeModal = () => {
 
     <!-- Main Content -->
     <div class="flex gap-5 py-5 overflow-x-auto">
-      <div
-        class="bg-gray-100 p-3 rounded-lg min-w-[250px] flex flex-col"
-        v-for="list in lists"
-        :key="list.id"
-      >
+          <div class="bg-gray-100 p-3 rounded-lg min-w-[250px] flex flex-col" v-for="(list, listIndex) in lists" :key="list.id">
         <h2 class="font-medium mb-2">{{ list.title }}</h2>
         <Draggable :list="list.cards" group="cards" item-key="id">
 
           <template #item="{ element }">
-            <div class="bg-white p-2 my-2 rounded shadow cursor-pointer">
-              <span class="text-sm font-medium">{{ element.title }}</span>
+          <div @click="openModal(listIndex, element)" class="bg-white p-2 my-2 rounded shadow cursor-pointer">
+                  <span class="text-sm font-medium">{{ element.title }}</span>
               <p class="text-xs text-gray-400">
                 {{ element.description }}
               </p>
             </div>
           </template>
         </Draggable>
-        <button
-          class="w-full bg-transparent rounded hover:bg-white text-gray-500 p-2 text-left mt-2 text-sm font-medium"
-          @click="openModal"
-        >
+        <button class="w-full bg-transparent rounded hover:bg-white text-gray-500 p-2 text-left mt-2 text-sm font-medium" @click="openModal(listIndex)">
           + Add Card
         </button>
       </div>
     </div>
 
     <!-- Modal Dialog -->
-    <ModalDialog :is-open="isModalOpen" @close="closeModal" />
+    <ModalDialog :is-open="isModalOpen" :card="editingCard" :mode="modalMode" @close="closeModal" @save="saveCard" />
+
   </main>
 </template>
