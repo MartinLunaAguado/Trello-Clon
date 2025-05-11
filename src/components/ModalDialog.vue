@@ -47,6 +47,12 @@ watch(
   },
 )
 
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    emit('save', localCard.value)
+  }
+}
+
 //ctrl + q para cerrar el Modal Dialog
 </script>
 
@@ -54,6 +60,7 @@ watch(
   <div
     v-if="isOpen"
     @keydown.esc="emit('close')"
+    @keydown="handleKeydown"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
     role="dialog"
     aria-modal="true"
